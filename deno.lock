@@ -1,0 +1,12 @@
+{
+  "version": "2",
+  "remote": {
+    "https://deno.land/std@0.195.0/fmt/colors.ts": "a7eecffdf3d1d54db890723b303847b6e0a1ab4b528ba6958b8f2e754cf1b3bc",
+    "https://deno.land/x/nocular@v1.0.4/lib/errors/HTTPError.ts": "1b76fdde1064e13295b8ac7260fc1a022272a07e76ba2dd1c7f19f49cdad1cdc",
+    "https://deno.land/x/nocular@v1.0.4/lib/structures/ExtendableArray.ts": "27c21054a8502fbaa7fba1fa6156347d6fdb210b53d4c66eae6649cc7b5d1dd0",
+    "https://deno.land/x/nocular@v1.0.4/lib/structures/Nocular.ts": "c2bcc4d49b8d79bac711588d7673929944dee41d49c352b9df8e136e4a7f10ec",
+    "https://deno.land/x/nocular@v1.0.4/lib/types/nocular.ts": "cf2a194c8e333fb01daf05ab67397476cf86edc3f3f242a05c43e2a3d6e62a15",
+    "https://deno.land/x/nocular@v1.0.4/lib/util/types.ts": "b1aca7bc6ee1cc8e2c78d11173b6ac2cb4c7c705390622e74ec429e12125c024",
+    "https://deno.land/x/nocular@v1.0.4/mod.ts": "fa8a1415da1f16f7f71aa96bd4b1c97d7e2c9b632bfa1f0b92fd61fb2a87747a"
+  }
+}
