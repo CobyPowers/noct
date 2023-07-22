@@ -8,8 +8,8 @@ export enum LogLevel {
 }
 
 export interface LoggerOptions {
-  moduleName: string;
-  modulePadding?: number;
+  prefix: string;
+  padding?: number;
   logLevel?: LogLevel;
   logLocale?: string;
   useTimestamps?: boolean;

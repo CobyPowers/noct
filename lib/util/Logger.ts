@@ -20,7 +20,7 @@ export default class Logger {
   
   constructor(options: LoggerOptions) {
     this.options = {
-      modulePadding: options.modulePadding || 10,
+      padding: options.padding || 12,
       logLevel: options.logLevel || LogLevel.INFO,
       logLocale: options.logLocale || 'en-US',
       useTimestamps: options.useTimestamps || true,
@@ -30,12 +30,11 @@ export default class Logger {
 
   @IsLevel(LogLevel.INFO)
   moduleInfo(msg: string) {
-    console.log(this)
     const timestampStr = this.options.useTimestamps ? `[${this.getTimestamp()}]` : '';
-    const moduleStr = color.magenta(color.bold(this.options.moduleName));
-    const paddingStr = ' '.repeat(10-this.options.moduleName.length);
+    const prefixStr = color.magenta(color.bold(this.options.prefix));
+    const paddingStr = ' '.repeat(10-this.options.prefix.length);
 
-    console.info(`${timestampStr} ${moduleStr}${paddingStr}${msg}`);
+    console.info(`${timestampStr} ${prefixStr}${paddingStr}${msg}`);
   }
 
   @IsLevel(LogLevel.SEVERE)
@@ -58,13 +57,13 @@ export default class Logger {
     console.info(...data);
   }
 
-  @IsLevel(LogLevel.NONE)
+  @IsLevel(LogLevel.DEBUG)
   debug(...msgs: any[]) {
     console.debug(...msgs);
   }
 
-  fromModule(name: string): Logger {
-    return new Logger({ ...this.options, moduleName: name });
+  withModule(name: string): Logger {
+    return new Logger({ ...this.options, prefix: name });
   }
 
   getTimestamp(): string {

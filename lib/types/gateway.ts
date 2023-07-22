@@ -1,7 +1,6 @@
 import { StatusType } from "./activity.ts";
 import { Activity } from "./activity.ts";
 import { Snowflake } from "./global.ts";
-import { APIVersion } from "./http.ts";
 
 export type GatewayPayload<T = any> = {
   op: 0,
@@ -21,6 +20,13 @@ export interface GatewayConnectionProperties {
   os: string;
   browser: string;
   device: string;
+}
+
+export interface GatewaySessionStartLimit {
+  total: number;
+  remaining: number;
+  reset_after: number;
+  max_concurrency: number;
 }
 
 //#endregion
@@ -78,7 +84,7 @@ export interface GatewayHelloEvent {
 }
 
 export interface GatewayReadyEvent {
-  v: APIVersion;
+  v: number;
   user: User;
   guilds: UnavailableGuild[];
   session_id: string;

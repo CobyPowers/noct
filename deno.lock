@@ -1,6 +1,7 @@
 {
   "version": "2",
   "remote": {
+    "https://deno.land/std@0.195.0/async/deferred.ts": "42790112f36a75a57db4a96d33974a936deb7b04d25c6084a9fa8a49f135def8",
     "https://deno.land/std@0.195.0/fmt/colors.ts": "a7eecffdf3d1d54db890723b303847b6e0a1ab4b528ba6958b8f2e754cf1b3bc",
     "https://deno.land/x/nocular@v1.0.4/lib/errors/HTTPError.ts": "1b76fdde1064e13295b8ac7260fc1a022272a07e76ba2dd1c7f19f49cdad1cdc",
     "https://deno.land/x/nocular@v1.0.4/lib/structures/ExtendableArray.ts": "27c21054a8502fbaa7fba1fa6156347d6fdb210b53d4c66eae6649cc7b5d1dd0",
