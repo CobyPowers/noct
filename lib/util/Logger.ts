@@ -1,8 +1,12 @@
-import { color } from '../../deps.ts';
-import { LogLevel, LoggerOptions } from '../types/logger.ts';
+import { color } from "../../deps.ts";
+import { LoggerOptions, LogLevel } from "../types/logger.ts";
 
 const IsLevel = (level: LogLevel) => {
-  return (_target: any, _propertyKey: string, descriptor: PropertyDescriptor) => {
+  return (
+    _target: any,
+    _propertyKey: string,
+    descriptor: PropertyDescriptor,
+  ) => {
     const method = descriptor.value!;
 
     descriptor.value = function (...args: any[]) {
@@ -17,24 +21,51 @@ const IsLevel = (level: LogLevel) => {
 
 export default class Logger {
   options: LoggerOptions;
-  
+
   constructor(options: LoggerOptions) {
     this.options = {
       padding: options.padding || 12,
       logLevel: options.logLevel || LogLevel.INFO,
-      logLocale: options.logLocale || 'en-US',
+      logLocale: options.logLocale || "en-US",
       useTimestamps: options.useTimestamps || true,
-      ...options
-    }
+      ...options,
+    };
   }
 
   @IsLevel(LogLevel.INFO)
   moduleInfo(msg: string) {
-    const timestampStr = this.options.useTimestamps ? `[${this.getTimestamp()}]` : '';
+    const timestampStr = this.options.useTimestamps
+      ? `[${this.getTimestamp()}]`
+      : "";
     const prefixStr = color.magenta(color.bold(this.options.prefix));
-    const paddingStr = ' '.repeat(10-this.options.prefix.length);
+    const paddingStr = " ".repeat(10 - this.options.prefix.length);
 
     console.info(`${timestampStr} ${prefixStr}${paddingStr}${msg}`);
+  }
+
+  @IsLevel(LogLevel.INFO)
+  sent(msg: string) {
+    this.moduleInfo(color.blue(`↑ ${msg}`));
+  }
+
+  @IsLevel(LogLevel.INFO)
+  received(msg: string) {
+    this.moduleInfo(color.blue(`↓ ${msg}`));
+  }
+
+  @IsLevel(LogLevel.INFO)
+  cycle(msg: string) {
+    this.moduleInfo(color.blue(`⟳ ${msg}`));
+  }
+
+  @IsLevel(LogLevel.INFO)
+  check(msg: string) {
+    this.moduleInfo(color.blue(`✓ ${msg}`));
+  }
+
+  @IsLevel(LogLevel.INFO)
+  cross(msg: string) {
+    this.moduleInfo(color.blue(`× ${msg}`));
   }
 
   @IsLevel(LogLevel.SEVERE)

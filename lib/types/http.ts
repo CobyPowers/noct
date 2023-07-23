@@ -1,4 +1,5 @@
 import { GatewaySessionStartLimit } from "./gateway.ts";
+import { Snowflake } from "./global.ts";
 import { LogLevel } from "./logger.ts";
 
 export interface HTTPClientOptions {
@@ -8,6 +9,11 @@ export interface HTTPClientOptions {
   token: string;
 }
 
+export interface HTTPRequestOptions {
+  ignoreGlobalLock?: boolean;
+  tries?: number;
+}
+
 export interface HTTPRateLimitError {
   message: string;
   retry_after: number;
@@ -15,17 +21,17 @@ export interface HTTPRateLimitError {
   code?: number;
 }
 
-export interface HTTPGeneralError {
+export interface HTTPBadRequestError {
   code: number,
-  errors: HTTPGeneralErrorNest | HTTPGeneralErrorDetails;
+  errors: HTTPBadRequestErrorNest | HTTPBadRequestErrorDetails;
   message: string;
 }
 
-export interface HTTPGeneralErrorNest {
-  [key: string]: HTTPGeneralErrorNest | HTTPGeneralErrorDetails;
+export interface HTTPBadRequestErrorNest {
+  [key: string]: HTTPBadRequestErrorNest | HTTPBadRequestErrorDetails;
 }
 
-export interface HTTPGeneralErrorDetails {
+export interface HTTPBadRequestErrorDetails {
   _errors: {
     code: string;
     message: string;
@@ -34,14 +40,18 @@ export interface HTTPGeneralErrorDetails {
 
 // #region Gateway
 
-export interface HTTPGetGatewayURL {
-  url: string;
-}
-
-export interface HTTPGetGatewayBotURL {
-  url: string;
-  shards: number;
-  session_start_limit: GatewaySessionStartLimit;
+export interface HTTPGetGatewayConnectionInfoOptions {
+  v?: number;
+  encoding?: string;
+  compress?: string;
 }
 
 // #endregion Gateway
+
+// #region User
+
+export interface HTTPGetUserOptions {
+  userID: Snowflake;
+}
+
+// #endregion User

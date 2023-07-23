@@ -1,14 +1,18 @@
-import { Nocular, color } from "../../deps.ts";
+import { HTTPMethod, Nocular, color } from "../../deps.ts";
 import { NoctURL, NoctVersion } from "../../mod.ts";
-import { HTTPClientOptions, HTTPGetGatewayBotURL, HTTPGetGatewayURL, HTTPRateLimitError } from "../types/http.ts";
+import { HTTPClientOptions, HTTPBadRequestError as IHTTPBadRequestError, HTTPGetGatewayConnectionInfoOptions, HTTPRateLimitError, HTTPRequestOptions, HTTPGetUserOptions } from "../types/http.ts";
 import Collection from "../util/Collection.ts";
 import Lock from "../util/Lock.ts";
 import Logger from "../util/Logger.ts";
 import Bucket from "./Bucket.ts";
 import Route from "./Route.ts";
-import { delay } from "../util/misc.ts";
-import { LogLevel } from "../types/logger.ts";
+import { delay, querify } from "../util/misc.ts";
 import Reactive from "../util/Reactive.ts";
+import { GatewayConnectionInfo } from "../types/gateway.ts";
+import { GatewayBotConnectionInfo } from "../types/gateway.ts";
+import HTTPBadRequestError from "../errors/HTTPBadRequestError.ts";
+import HTTPError from "../errors/HTTPError.ts";
+import { User } from "../types/user.ts";
 
 export default class HTTPClient {
   #engine: Nocular;
@@ -44,11 +48,11 @@ export default class HTTPClient {
     this.#lock = new Lock();
   }
 
-  async request<T = any>(route: Route): Promise<T> {
+  async request<T = any>(route: Route, options?: HTTPRequestOptions): Promise<T> {
     const bucketID = route.getBucketID();
     const bucket = this.#buckets.get(bucketID);
 
-    if (this.#globalLock.value)
+    if (!options?.ignoreGlobalLock && this.#globalLock.value)
       await this.#globalLock.waitUntil(false);
 
     bucket
@@ -72,6 +76,28 @@ export default class HTTPClient {
       ? bucket.lock.release()
       : this.#lock.release()
 
+    if (res.status === 400) {
+      const data = res.data as IHTTPBadRequestError;
+
+      throw new HTTPBadRequestError(data);
+    }
+
+    if (res.status === 401) {
+      throw new HTTPError("You provided an invalid token.");
+    }
+
+    if (res.status === 403) {
+      throw new HTTPError("You cannot access this resource.");
+    }
+
+    if (res.status === 404) {
+      throw new HTTPError("This resource does not exist.");
+    }
+
+    if (res.status === 405) {
+      throw new HTTPError(`Method '${route.method}' cannot be used with path '${route.path}'`)
+    }
+
     if (res.status === 429) {
       const data = res.data as HTTPRateLimitError;
 
@@ -85,48 +111,74 @@ export default class HTTPClient {
       return await this.request<T>(route);
     }
 
+    if (res.status === 500 || res.status == 502) {
+      const tries = (options?.tries || 0) + 1;
+      const delayMS = (Math.pow(2, tries)) * 1000; // exponential backoff algorithm
+
+      this.#logger.debug(`HTTP request encountered a 5xx error, waiting ${delayMS}ms...`)
+
+      await delay(delayMS);
+      return await this.request<T>(route, { tries });
+    }
+
     return res.data as T;
   }
 
-  #processBucket(bucketID: string, bucket: Bucket | undefined, headers: Headers) {
+  #processBucket(bucketID: string, bucket: Bucket | undefined, headers: Headers): void {
     if (headers.has('X-RateLimit-Bucket')) {
-      if (!bucket) {
-        bucket = Bucket.fromHeaders(logger, bucketID, headers); 
-      } else {
-        const data = Bucket.parseHeaders(headers);
-        bucket = bucket.update({ id: bucketID, ...data });
-      }
+      bucket = bucket
+        ? bucket!.update(headers)
+        : Bucket.fromHeaders(this.#logger, bucketID, headers);
 
       this.#buckets.set(bucketID, bucket);
     }
   }
 
-  getGatewayURL(): Promise<HTTPGetGatewayURL> {
-    return this.request(
+  #transformGatewayInfo<T extends GatewayConnectionInfo>(info: T, options?: HTTPGetGatewayConnectionInfoOptions): T {
+    const params: Record<string, string | number | undefined> = {};
+
+    if (options) {
+      for (const [k, v] of Object.entries(options)) {
+        params[k] = v;
+      }
+    }
+
+    const query = querify(params);
+
+    info.url += '?' + query;
+
+    return info;
+  }
+
+  async getGatewayInfo(options?: HTTPGetGatewayConnectionInfoOptions): Promise<GatewayConnectionInfo> {
+    const info = await this.request(
       new Route({
-        method: 'get',
+        method: HTTPMethod.GET,
         path: '/gateway'
       })
     )
+
+    return this.#transformGatewayInfo(info, options);
   }
 
-  getGatewayBotURL(): Promise<HTTPGetGatewayBotURL> {
-    return this.request(
+  async getGatewayBotInfo(options?: HTTPGetGatewayConnectionInfoOptions): Promise<GatewayBotConnectionInfo> {
+    const info = await this.request(
       new Route({
-        method: 'get',
+        method: HTTPMethod.GET,
         path: '/gateway/bot'
       })
     )
+
+    return this.#transformGatewayInfo(info, options);
+  }
+
+  getUser(options: HTTPGetUserOptions): Promise<User> {
+    return this.request(new Route({
+      method: HTTPMethod.GET,
+      path: '/users/{userID}',
+      resources: {
+        ...options
+      }
+    }))
   }
 }
-
-const logger = new Logger({ prefix: 'DEFAULT', logLevel: LogLevel.DEBUG });
-const http = new HTTPClient(logger, { token: 'NzIzNjI3NDUyMzc4Nzc1NjIz.GfNvo6.FQiNLHotyg7ioyZXtTzt1vnkNhnPe6wXYvWcaE' });
-
-const getGatewayBotURLs = async () => {
-  for (let i = 0; i < 15; i++) {
-    const data = await http.getGatewayBotURL();
-  }
-}
-
-getGatewayBotURLs();

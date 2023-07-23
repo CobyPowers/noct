@@ -2,14 +2,14 @@ export enum GatewayOpcode {
   DISPATCH = 0,
   HEARTBEAT = 1,
   IDENTIFY = 2,
-  PRESENCE_UPDATE = 3,
+  UPDATE_PRESENCE = 3,
   VOICE_STATE_UPDATE = 4,
   RESUME = 6,
   RECONNECT = 7,
   REQUEST_GUILD_MEMBERS = 8,
   INVALID_SESSION = 9,
   HELLO = 10,
-  HEARTBEAT_ACK = 11
+  HEARTBEAT_ACK = 11,
 }
 
 export enum GatewayCloseEventCode {
@@ -26,7 +26,7 @@ export enum GatewayCloseEventCode {
   SHARDING_REQUIRED = 4011,
   INVALID_API_VERSION = 4012,
   INVALID_INTENTS = 4013,
-  DISALLOWED_INTENTS = 4014
+  DISALLOWED_INTENTS = 4014,
 }
 
 export enum VoiceOpcode {
@@ -40,6 +40,5 @@ export enum VoiceOpcode {
   RESUME = 7,
   HELLO = 8,
   RESUMED = 9,
-  CLIENT_DISCONNECT = 13
+  CLIENT_DISCONNECT = 13,
 }
-

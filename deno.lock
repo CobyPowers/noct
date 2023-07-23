@@ -1,8 +1,14 @@
 {
   "version": "2",
   "remote": {
+    "https://deno.land/std@0.158.0/encoding/base64.ts": "c57868ca7fa2fbe919f57f88a623ad34e3d970d675bdc1ff3a9d02bba7409db2",
     "https://deno.land/std@0.195.0/async/deferred.ts": "42790112f36a75a57db4a96d33974a936deb7b04d25c6084a9fa8a49f135def8",
     "https://deno.land/std@0.195.0/fmt/colors.ts": "a7eecffdf3d1d54db890723b303847b6e0a1ab4b528ba6958b8f2e754cf1b3bc",
+    "https://deno.land/x/event@2.0.1/mod.ts": "5b36cd679785638b59228ac42876c628e54efc50ae0015ba1589b9e8f12969b4",
+    "https://deno.land/x/foras@2.0.8/src/deno/mod.ts": "c350ea5f32938e6dcb694df3761615f316d730dafc57440e9afd5f36f8e309fd",
+    "https://deno.land/x/foras@2.0.8/src/deno/mods/mod.ts": "727376daee13a787684199dec4565ee47e6dcbd764c4a95e357924853754d42f",
+    "https://deno.land/x/foras@2.0.8/wasm/pkg/foras.js": "2f5956f443a8e60ec92cd9ce68d571d832fe396d5bd895f6ab9355f87a8e974b",
+    "https://deno.land/x/foras@2.0.8/wasm/pkg/foras.wasm.js": "d90bf84fc31e56dbf2867d377c420989763f66e72b83a04a1ffb458e6a516110",
     "https://deno.land/x/nocular@v1.0.4/lib/errors/HTTPError.ts": "1b76fdde1064e13295b8ac7260fc1a022272a07e76ba2dd1c7f19f49cdad1cdc",
     "https://deno.land/x/nocular@v1.0.4/lib/structures/ExtendableArray.ts": "27c21054a8502fbaa7fba1fa6156347d6fdb210b53d4c66eae6649cc7b5d1dd0",
     "https://deno.land/x/nocular@v1.0.4/lib/structures/Nocular.ts": "c2bcc4d49b8d79bac711588d7673929944dee41d49c352b9df8e136e4a7f10ec",
