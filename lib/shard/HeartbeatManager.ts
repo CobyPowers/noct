@@ -4,7 +4,9 @@ import Shard from "./Shard.ts";
 
 export default class HeartbeatManager {
   #shard: Shard;
-  #loop: number = 0;
+
+  #loop: number = 0; // main heartbeat tick loop
+  #setupLoop: number = 0; // initial heartbeat tick loop with jitter
 
   #acked: boolean = false;
   #interval: number = 0;
@@ -15,13 +17,13 @@ export default class HeartbeatManager {
     this.#shard = shard;
   }
 
-  #tick(initial: boolean = false) {
+  tick(initial: boolean = false) {
     if (this.#shard.state !== ShardState.STARTED) {
       return this.stop();
     }
 
     if (!initial && this.#acked === false) {
-      this.#shard.stop(3000);
+      this.#shard.stop();
       return this.stop();
     }
 
@@ -31,11 +33,11 @@ export default class HeartbeatManager {
     this.#acked = false;
   }
 
-  async #setup(interval: number) {
-    await delay(interval * Math.random());
-
-    this.#tick(true);
-    this.#loop = setInterval(() => this.#tick(), interval);
+  #setup(interval: number) {
+    this.#setupLoop = setTimeout(() => {
+      this.tick(true);
+      this.#loop = setInterval(() => this.tick(), interval);
+    }, interval * Math.random());
   }
 
   ack() {
@@ -52,6 +54,9 @@ export default class HeartbeatManager {
   stop() {
     clearInterval(this.#loop);
     this.#loop = 0;
+
+    clearTimeout(this.#setupLoop);
+    this.#setupLoop = 0;
 
     this.#acked = false;
     this.#tickTime = 0;

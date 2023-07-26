@@ -1,4 +1,5 @@
 import { Snowflake } from "./global.ts";
+import { Integration } from "./integration.ts";
 
 export enum UserFlag {
   STAFF = 1 << 0,
@@ -54,6 +55,8 @@ export enum UserConnectionVisibility {
   EVERYONE = 1,
 }
 
+export type PartialUser = Partial<User>;
+
 export interface User {
   id: Snowflake;
   username: string;
@@ -79,7 +82,7 @@ export interface UserConnection {
   name: string;
   type: UserConnectionType;
   revoked?: boolean;
-  integrations?: GuildIntegration[];
+  integrations?: Integration[];
   verified: boolean;
   friend_sync: boolean;
   show_activity: boolean;

@@ -88,7 +88,7 @@ export enum GatewayReceiveEvent {
 }
 
 export enum GatewayIntent {
-  ALL = 0b11111111111111111,
+  ALL = 0b1111111111111111111111,
   GUILDS = 1 << 0,
   GUILD_MEMBERS = 1 << 1,
   GUILD_MODERATION = 1 << 2,

@@ -1,4 +1,5 @@
 import { ApplicationCommand } from "./applicationCommands.ts";
+import { AutoModerationRule } from "./autoModeration.ts";
 import { Snowflake } from "./global.ts";
 import { User } from "./user.ts";
 
@@ -87,7 +88,7 @@ export interface AuditLogEntry {
   reason?: string;
 }
 
-// TODO: Figure out if the 'number' properties are actually 'strings'
+// TODO: figure out if the 'number' properties are actually 'strings'
 
 export interface AuditLogEntryInfo { // considered 'optional'
   application_id?: Snowflake;

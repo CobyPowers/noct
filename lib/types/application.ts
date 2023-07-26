@@ -1,6 +1,8 @@
 import { Snowflake } from "./global.ts";
+import { PartialGuild } from "./guild.ts";
 import { OAuthScope } from "./oauth.ts";
 import { Team } from "./team.ts";
+import { User } from "./user.ts";
 
 export enum ApplicationFlag {
   APPLICATION_AUTO_MODERATION_RULE_CREATE_BADGE = 1 << 6,
@@ -15,12 +17,10 @@ export enum ApplicationFlag {
   APPLICATION_COMMAND_BADGE = 1 << 23,
 }
 
-export interface PartialApplication {
-  id: Snowflake;
-  flags: ApplicationFlag;
-}
+export type PartialApplication = Partial<Application>;
 
-export interface Application extends PartialApplication {
+export interface Application {
+  id: Snowflake;
   name: string;
   icon: string | null;
   description: string;
@@ -37,6 +37,7 @@ export interface Application extends PartialApplication {
   primary_sku_id?: Snowflake;
   slug?: string;
   cover_image?: string;
+  flags?: ApplicationFlag;
   approximate_guild_count?: number;
   tags?: string[];
   install_params?: ApplicationInstallParams;

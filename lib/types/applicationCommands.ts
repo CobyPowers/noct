@@ -1,3 +1,4 @@
+import { ChannelType } from "./channel.ts";
 import { Locale, Snowflake } from "./global.ts";
 
 export enum ApplicationCommandType {
@@ -20,19 +21,25 @@ export enum ApplicationCommandOptionType {
   ATTACHMENT = 11,
 }
 
+export enum ApplicationCommandPermissionType {
+  ROLE = 1,
+  USER = 2,
+  CHANNEL = 3,
+}
+
 export interface ApplicationCommand {
   id: Snowflake;
   type?: ApplicationCommandType;
   application_id: Snowflake;
   guild_id?: Snowflake;
   name: string;
-  name_localizations?: Record<Locale, string>;
+  name_localizations?: Record<Locale, string> | null;
   description: string;
-  description_localizations?: Record<Locale, string>;
+  description_localizations?: Record<Locale, string> | null;
   options?: ApplicationCommandOption[];
   default_member_permissions: string | null;
   dm_permission?: boolean;
-  default_permission?: boolean | false;
+  default_permission?: boolean | null;
   nsfw?: boolean;
   version: Snowflake;
 }
@@ -40,9 +47,9 @@ export interface ApplicationCommand {
 export interface ApplicationCommandOption {
   type: ApplicationCommandOptionType;
   name: string;
-  name_localizations?: Record<Locale, string>;
+  name_localizations?: Record<Locale, string> | null;
   description: string;
-  description_localizations?: Record<Locale, string>;
+  description_localizations?: Record<Locale, string> | null;
   required?: boolean;
   choices?: ApplicationCommandOptionChoice[];
   options?: ApplicationCommandOption[];
@@ -56,6 +63,19 @@ export interface ApplicationCommandOption {
 
 export interface ApplicationCommandOptionChoice {
   name: string;
-  name_localizations?: Record<Locale, string>;
+  name_localizations?: Record<Locale, string> | null;
   value: string | number;
+}
+
+export interface ApplicationCommandPermissions {
+  id: Snowflake;
+  application_id: Snowflake;
+  guild_id: Snowflake;
+  permissions: ApplicationCommandPermissions[];
+}
+
+export interface ApplicationCommandPermission {
+  id: Snowflake;
+  type: ApplicationCommandPermissionType;
+  permission: boolean;
 }

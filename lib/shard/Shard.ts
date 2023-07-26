@@ -1,4 +1,4 @@
-import { EventEmitter } from "../../deps.ts";
+import { color, EventEmitter } from "../../deps.ts";
 import {
   GatewayDispatchPayload,
   GatewayDispatchReceiveEventMap,
@@ -42,6 +42,10 @@ export default class Shard extends EventEmitter<ShardEmitMap> {
 
     this.#logger = logger.withModule(`SHARD ${options.sharding.shardNum}`);
     this.#hb = new HeartbeatManager(this);
+
+    Deno.addSignalListener("SIGINT", () => {
+      this.stop(1000);
+    });
   }
 
   start() {
@@ -67,9 +71,9 @@ export default class Shard extends EventEmitter<ShardEmitMap> {
     this.start();
   }
 
-  stop(code?: number) {
+  stop(code: number = 3000) {
     if (this.#state === ShardState.STARTED) {
-      this.#ws.close(code);
+      this.#ws.close(code, "");
     }
   }
 
@@ -91,15 +95,16 @@ export default class Shard extends EventEmitter<ShardEmitMap> {
 
   #onDisconnect(ev: CloseEventInit) {
     this.#state = ShardState.STOPPED;
+    this.#hb.stop();
 
     this.#logger.cross(`Disconnected (${ev.code})`);
 
+    if (ev.code?.toString().startsWith("1")) {
+      return this.#reset();
+    }
+
     switch (ev.code) {
-      case 1000: // new session
-      case 1001: { // new session
-        this.#reset();
-        break;
-      }
+      case undefined:
       case 4000: // unknown err
       case 4001: // unknown opcode
       case 4002: // decode err
@@ -128,6 +133,8 @@ export default class Shard extends EventEmitter<ShardEmitMap> {
   #onError(ev: ErrorEventInit) {
     this.#state = ShardState.ERRORED;
 
+    this.#logger.error(ev);
+
     throw ev.error;
   }
 
@@ -151,6 +158,11 @@ export default class Shard extends EventEmitter<ShardEmitMap> {
         this.restart({ resume: payload.d });
         break;
       }
+      case GatewayOpcode.HEARTBEAT: {
+        this.#hb.tick();
+        this.#logger.received("Heartbeat");
+        break;
+      }
       case GatewayOpcode.HEARTBEAT_ACK: {
         this.#hb.ack();
         this.#logger.received(`Heartbeat ACK (${this.latency}ms)`);
@@ -160,28 +172,39 @@ export default class Shard extends EventEmitter<ShardEmitMap> {
         this.#onDispatch(payload);
         break;
       }
-      default:
+      default: {
+        this.#logger.moduleInfo(
+          `${color.brightYellow("Opcode")} ${
+            color.green(GatewayOpcode[payload.op])
+          }`,
+        );
         break;
+      }
     }
   }
 
   #onDispatch(
-    data: GatewayDispatchPayload<
+    payload: GatewayDispatchPayload<
       GatewayDispatchReceiveEventMap,
       keyof GatewayDispatchReceiveEventMap
     >,
   ) {
-    this.#seq = data.s;
+    this.#seq = payload.s;
 
-    switch (data.t) {
+    switch (payload.t) {
       case "READY": {
         this.#logger.received("Ready");
-        this.#sessionID = data.d.session_id;
-        this.#resumeURL = data.d.resume_gateway_url;
+        this.#sessionID = payload.d.session_id;
+        this.#resumeURL = payload.d.resume_gateway_url;
+        console.log(payload.d);
         break;
       }
-      default:
+      default: {
+        this.#logger.moduleInfo(
+          `${color.yellow("Event")} ${color.green(payload.t)}`,
+        );
         break;
+      }
     }
   }
 

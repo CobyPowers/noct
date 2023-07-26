@@ -1,14 +1,13 @@
 import { Snowflake } from "./global.ts";
 
-export enum Status {
-  ONLINE = 'online',
-  DND = 'dnd',
-  IDLE = 'idle',
-  INVISIBLE = 'invisible',
-  OFFLINE = 'offline'
-}
-
-export type StatusType = `${Status}`;
+export const StatusType = {
+  ONLINE: "online",
+  DND: "dnd",
+  IDLE: "idle",
+  INVISIBLE: "invisible",
+  OFFLINE: "offline",
+};
+export type StatusType = typeof StatusType[keyof typeof StatusType];
 
 export enum ActivityType {
   GAME = 0,
@@ -16,10 +15,10 @@ export enum ActivityType {
   LISTENING = 2,
   WATCHING = 3,
   CUSTOM = 4,
-  COMPETING = 5
+  COMPETING = 5,
 }
 
-export enum ActivityFlags {
+export enum ActivityFlag {
   INSTANCE = 1 << 0,
   JOIN = 1 << 1,
   SPECTATE = 1 << 2,
@@ -31,6 +30,8 @@ export enum ActivityFlags {
   EMBEDDED = 1 << 8,
 }
 
+export type PartialActivity = Partial<Activity>;
+
 export interface Activity {
   name: string;
   type: ActivityType;
@@ -40,12 +41,12 @@ export interface Activity {
   application_id?: Snowflake;
   details?: string | null;
   state?: string | null;
-  emoji?: ActivityEmoji;
+  emoji?: ActivityEmoji | null;
   party?: ActivityParty;
   assets?: ActivityAssets;
   secrets?: ActivitySecrets;
   instance?: boolean;
-  flags?: ActivityFlags;
+  flags?: ActivityFlag;
   buttons?: ActivityButton[];
 }
 
