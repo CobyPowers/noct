@@ -1,8 +1,5 @@
-import {
-  GatewayCompression,
-  GatewayEncoding,
-  GatewayUpdatePresenceSendEvent,
-} from "./gateway.ts";
+import { GatewayPayload, GatewayReadyReceiveEvent } from "./gateway.ts";
+import { Presence } from "./presence.ts";
 
 export enum ShardState {
   STARTED,
@@ -14,10 +11,10 @@ export interface ShardOptions {
   token: string;
   intents: number;
   gatewayURL: string;
-  sharding: ShardInfo;
+  shardInfo: ShardInfo;
   largeThreshold?: number;
-  compression?: GatewayCompression;
-  presence?: GatewayUpdatePresenceSendEvent;
+  compress?: boolean;
+  presence?: Presence;
 }
 
 export interface ShardRestartOptions {
@@ -29,8 +26,12 @@ export interface ShardInfo {
   numShards: number;
 }
 
-export interface ShardEmitMap extends Record<string, unknown[]> {
+export interface ShardEventMap extends Record<string, unknown[]> {
   start: [];
   stop: [];
-  error: [Error];
+  connect: [];
+  disconnect: [];
+  error: [Error?];
+  raw: [GatewayPayload];
+  ready: [GatewayReadyReceiveEvent];
 }

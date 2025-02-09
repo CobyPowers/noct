@@ -1,7 +1,19 @@
 {
+  "fmt": {
+    "options": {
+      "singleQuote": true,
+      "semiColons": true
+    }
+  },
   "lint": {
     "rules": {
       "exclude": ["no-explicit-any", "no-unused-vars", "no-inferrable-types", "no-empty-interface"]
     }
+  },
+  "imports": {
+    "@std/async": "jsr:@std/async@^1.0.10",
+    "@std/fmt": "jsr:@std/fmt@^1.0.5",
+    "event": "https://deno.land/x/event@2.0.1/mod.ts",
+    "nocular": "https://deno.land/x/nocular@v1.0.4/mod.ts"
   }
 }

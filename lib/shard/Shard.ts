@@ -1,4 +1,5 @@
-import { color, EventEmitter } from "../../deps.ts";
+import * as color from "@std/fmt/colors";
+import { EventEmitter } from 'event';
 import {
   GatewayDispatchPayload,
   GatewayDispatchReceiveEventMap,
@@ -6,46 +7,57 @@ import {
   GatewayIdentifyPayload,
   GatewayPayload,
   GatewayResumePayload,
-} from "../types/gateway.ts";
+} from '../types/gateway.ts';
 import {
-  ShardEmitMap,
+  ShardEventMap,
   ShardOptions,
   ShardRestartOptions,
   ShardState,
-} from "../types/shard.ts";
-import Logger from "../util/Logger.ts";
-import { clamp } from "../util/misc.ts";
-import { GatewayOpcode } from "../types/codes.ts";
-import HeartbeatManager from "./HeartbeatManager.ts";
+} from '../types/shard.ts';
+import Logger from '../util/Logger.ts';
+import { clamp } from '../util/misc.ts';
+import { GatewayOpcode } from '../types/codes.ts';
+import HeartbeatManager from './HeartbeatManager.ts';
+import ShardManager from './ShardManager.ts';
+import Message from '../structures/Message.ts';
 
-export default class Shard extends EventEmitter<ShardEmitMap> {
+export default class Shard extends EventEmitter<ShardEventMap> {
   #ws!: WebSocket;
+  #sharder: ShardManager;
   #logger: Logger;
   #hb: HeartbeatManager;
 
   #state: ShardState = ShardState.STOPPED;
 
   #seq: number = 0;
-  #sessionID: string = "";
-  #resumeURL: string = "";
+  #sessionID: string = '';
+  #resumeURL: string = '';
 
   options: ShardOptions;
 
-  constructor(logger: Logger, options: ShardOptions) {
+  constructor(sharder: ShardManager, logger: Logger, options: ShardOptions) {
     super();
 
     this.options = {
       ...options,
       largeThreshold: clamp(options.largeThreshold, 50, 250),
-      compression: options.compression || "none",
+      compress: options.compress || false,
     };
 
-    this.#logger = logger.withModule(`SHARD ${options.sharding.shardNum}`);
+    this.#sharder = sharder;
+    this.#logger = logger.withModule(
+      `SHARD ${options.shardInfo.shardNum}`,
+    );
     this.#hb = new HeartbeatManager(this);
+  }
 
-    Deno.addSignalListener("SIGINT", () => {
-      this.stop(1000);
-    });
+  // HACK: propogates raw events to the sharder, probably not a good idea
+  override emit<K extends keyof ShardEventMap>(eventName: K, ...args: ShardEventMap[K]): Promise<void> {
+    if (eventName == "raw") {
+      this.#sharder.emit("raw", <GatewayPayload>args[0]);
+    }
+
+    return super.emit(eventName, ...args);
   }
 
   start() {
@@ -53,10 +65,12 @@ export default class Shard extends EventEmitter<ShardEmitMap> {
       this.#resumeURL || this.options.gatewayURL,
     );
 
-    ws.addEventListener("open", this.#onConnect.bind(this));
-    ws.addEventListener("close", this.#onDisconnect.bind(this));
-    ws.addEventListener("error", this.#onError.bind(this));
-    ws.addEventListener("message", this.#onMessage.bind(this));
+    ws.addEventListener('open', this.#onConnect.bind(this));
+    ws.addEventListener('close', this.#onDisconnect.bind(this));
+    ws.addEventListener('error', this.#onError.bind(this));
+    ws.addEventListener('message', this.#onMessage.bind(this));
+
+    this.emit('start');
   }
 
   restart(options?: ShardRestartOptions) {
@@ -73,14 +87,16 @@ export default class Shard extends EventEmitter<ShardEmitMap> {
 
   stop(code: number = 3000) {
     if (this.#state === ShardState.STARTED) {
-      this.#ws.close(code, "");
+      this.#ws.close(code, ''); // empty string needed to prevent 1005 close codes
     }
+
+    this.emit('stop');
   }
 
   #reset() {
     this.#seq = 0;
-    this.#sessionID = "";
-    this.#resumeURL = "";
+    this.#sessionID = '';
+    this.#resumeURL = '';
   }
 
   send(data: any) {
@@ -90,7 +106,7 @@ export default class Shard extends EventEmitter<ShardEmitMap> {
   #onConnect() {
     this.#state = ShardState.STARTED;
 
-    this.#logger.check("Connected");
+    this.#logger.check('Connected');
   }
 
   #onDisconnect(ev: CloseEventInit) {
@@ -99,7 +115,7 @@ export default class Shard extends EventEmitter<ShardEmitMap> {
 
     this.#logger.cross(`Disconnected (${ev.code})`);
 
-    if (ev.code?.toString().startsWith("1")) {
+    if (ev.code?.toString().startsWith('1')) {
       return this.#reset();
     }
 
@@ -133,34 +149,45 @@ export default class Shard extends EventEmitter<ShardEmitMap> {
   #onError(ev: ErrorEventInit) {
     this.#state = ShardState.ERRORED;
 
-    this.#logger.error(ev);
-
-    throw ev.error;
+    switch (ev.message) {
+      case 'unexpected eof': {
+        this.#logger.cross('EOF Error');
+        this.restart({ resume: true });
+        break;
+      }
+      default: {
+        this.#logger.cross('Unknown Error');
+        this.emit('error', ev.error);
+        break;
+      }
+    }
   }
 
   #onMessage(ev: MessageEvent<string>) {
     const payload = JSON.parse(ev.data) as GatewayPayload;
 
+    this.emit('raw', payload);
+
     switch (payload.op) {
       case GatewayOpcode.HELLO: {
-        this.#logger.received("Hello");
+        this.#logger.received('Hello');
         this.#hb.start(payload.d.heartbeat_interval);
         this.#sessionID ? this.sendResume() : this.sendIdentify();
         break;
       }
       case GatewayOpcode.RECONNECT: {
-        this.#logger.received("Reconnect");
+        this.#logger.received('Reconnect');
         this.restart({ resume: true });
         break;
       }
       case GatewayOpcode.INVALID_SESSION: {
-        this.#logger.received("Invalid Session");
+        this.#logger.received('Invalid Session');
         this.restart({ resume: payload.d });
         break;
       }
       case GatewayOpcode.HEARTBEAT: {
         this.#hb.tick();
-        this.#logger.received("Heartbeat");
+        this.#logger.received('Forced Heartbeat');
         break;
       }
       case GatewayOpcode.HEARTBEAT_ACK: {
@@ -174,7 +201,7 @@ export default class Shard extends EventEmitter<ShardEmitMap> {
       }
       default: {
         this.#logger.moduleInfo(
-          `${color.brightYellow("Opcode")} ${
+          `${color.brightYellow('Opcode')} ${
             color.green(GatewayOpcode[payload.op])
           }`,
         );
@@ -192,24 +219,26 @@ export default class Shard extends EventEmitter<ShardEmitMap> {
     this.#seq = payload.s;
 
     switch (payload.t) {
-      case "READY": {
-        this.#logger.received("Ready");
+      case 'READY': {
+        this.#logger.received('Ready');
         this.#sessionID = payload.d.session_id;
         this.#resumeURL = payload.d.resume_gateway_url;
-        console.log(payload.d);
+
+        this.emit('ready', payload.d);
         break;
       }
       default: {
         this.#logger.moduleInfo(
-          `${color.yellow("Event")} ${color.green(payload.t)}`,
+          `${color.yellow('Event')} ${color.green(payload.t)}`,
         );
+
         break;
       }
     }
   }
 
   sendIdentify() {
-    const { token, intents, sharding, largeThreshold, compression, presence } =
+    const { token, intents, shardInfo, largeThreshold, compress, presence } =
       this.options;
 
     const data: GatewayIdentifyPayload = {
@@ -217,21 +246,21 @@ export default class Shard extends EventEmitter<ShardEmitMap> {
       d: {
         token,
         intents,
+        compress,
         presence,
-        shard: [sharding.shardNum, sharding.numShards],
+        shard: [shardInfo.shardNum, shardInfo.numShards],
         properties: {
           os: Deno.build.os,
-          browser: "Noct",
-          device: "Noct",
+          browser: 'Noct',
+          device: 'Noct',
         },
-        compress: compression === "zlib-stream",
         large_threshold: largeThreshold,
       },
     };
 
     this.send(data);
 
-    this.#logger.sent("Identify");
+    this.#logger.sent('Identify');
   }
 
   sendResume() {
@@ -246,7 +275,7 @@ export default class Shard extends EventEmitter<ShardEmitMap> {
 
     this.send(data);
 
-    this.#logger.sent("Resume");
+    this.#logger.sent('Resume');
   }
 
   sendHeartbeat() {
@@ -257,7 +286,7 @@ export default class Shard extends EventEmitter<ShardEmitMap> {
 
     this.send(data);
 
-    this.#logger.sent("Heartbeat");
+    this.#logger.sent('Heartbeat');
   }
 
   get state() {

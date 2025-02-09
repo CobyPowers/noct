@@ -1,7 +1,5 @@
-import { Deferred, deferred } from "../../deps.ts";
-
 export default class Lock {
-  #queue: Deferred<void>[] = [];
+  #queue: Promise<void>[] = [];
 
   async with(callback: () => void | Promise<void>): Promise<void> {
     await this.acquire();
@@ -16,7 +14,7 @@ export default class Lock {
   async acquire(): Promise<void> {
     const queue = [...this.#queue];
 
-    this.#queue.push(deferred());
+    this.#queue.push(new Promise<void>(() => {}));
 
     if (queue.length)
       await Promise.all(queue);
@@ -33,7 +31,7 @@ export default class Lock {
     const waiter = this.#queue.shift();
 
     if (waiter) {
-      waiter.resolve();
+      Promise.resolve(waiter);
     } else {
       throw new Error("The lock cannot be released if it was never acquired.");
     }

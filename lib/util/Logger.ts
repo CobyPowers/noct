@@ -1,4 +1,4 @@
-import { color } from "../../deps.ts";
+import * as color from "@std/fmt/colors";
 import { LoggerOptions, LogLevel } from "../types/logger.ts";
 
 const IsLevel = (level: LogLevel) => {
@@ -32,7 +32,7 @@ export default class Logger {
     };
   }
 
-  @IsLevel(LogLevel.INFO)
+  //@IsLevel(LogLevel.INFO)
   moduleInfo(msg: string) {
     const timestampStr = this.options.useTimestamps
       ? `[${this.getTimestamp()}]`
@@ -43,52 +43,52 @@ export default class Logger {
     console.info(`${timestampStr} ${prefixStr}${paddingStr}${msg}`);
   }
 
-  @IsLevel(LogLevel.INFO)
+  //@IsLevel(LogLevel.INFO)
   sent(msg: string) {
     this.moduleInfo(color.blue(`↑ ${msg}`));
   }
 
-  @IsLevel(LogLevel.INFO)
+  //@IsLevel(LogLevel.INFO)
   received(msg: string) {
     this.moduleInfo(color.blue(`↓ ${msg}`));
   }
 
-  @IsLevel(LogLevel.INFO)
+  //@IsLevel(LogLevel.INFO)
   cycle(msg: string) {
     this.moduleInfo(color.blue(`⟳ ${msg}`));
   }
 
-  @IsLevel(LogLevel.INFO)
+  //@IsLevel(LogLevel.INFO)
   check(msg: string) {
     this.moduleInfo(color.blue(`✓ ${msg}`));
   }
 
-  @IsLevel(LogLevel.INFO)
+  //@IsLevel(LogLevel.INFO)
   cross(msg: string) {
     this.moduleInfo(color.blue(`× ${msg}`));
   }
 
-  @IsLevel(LogLevel.SEVERE)
+  //@IsLevel(LogLevel.SEVERE)
   severe(...data: any[]) {
     console.error(...data);
   }
 
-  @IsLevel(LogLevel.ERROR)
+  //@IsLevel(LogLevel.ERROR)
   error(...data: any[]) {
     console.error(...data);
   }
 
-  @IsLevel(LogLevel.WARN)
+  //@IsLevel(LogLevel.WARN)
   warn(...data: any[]) {
     console.warn(...data);
   }
 
-  @IsLevel(LogLevel.INFO)
+  //@IsLevel(LogLevel.INFO)
   info(...data: any[]) {
     console.info(...data);
   }
 
-  @IsLevel(LogLevel.DEBUG)
+  //@IsLevel(LogLevel.DEBUG)
   debug(...msgs: any[]) {
     console.debug(...msgs);
   }

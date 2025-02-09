@@ -1,5 +1,4 @@
 import { ShardState } from "../types/shard.ts";
-import { delay } from "../util/misc.ts";
 import Shard from "./Shard.ts";
 
 export default class HeartbeatManager {

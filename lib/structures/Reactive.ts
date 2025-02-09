@@ -1,8 +1,6 @@
-import { Deferred, deferred } from "../../deps.ts";
-
 export default class Reactive<T> {
   #value: T;
-  #waiters: Map<Deferred<void>, T>;
+  #waiters: Map<Promise<void>, T>;
 
   constructor(defaultValue: T) {
     this.#value = defaultValue;
@@ -10,7 +8,7 @@ export default class Reactive<T> {
   }
 
   async waitUntil(value: T): Promise<void> {
-    const waiter = deferred<void>();
+    const waiter = new Promise<void>(() => {});
     this.#waiters.set(waiter, value);
     
     await Promise.all([waiter]);
@@ -21,7 +19,7 @@ export default class Reactive<T> {
 
     for (const [k, v] of this.#waiters.entries()) {
       if (v === value)
-        k.resolve();
+        Promise.resolve(k);
     }
 
     return value;

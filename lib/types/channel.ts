@@ -1,10 +1,9 @@
-import { DefaultReaction } from "./emoji.ts";
-import { ISO8601, Snowflake } from "./global.ts";
-import { Overwrite } from "./role.ts";
-import { User } from "./user.ts";
-import { VoiceRegion } from "./voice.ts";
-
-// TODO: consider use of internal naming or doc naming for channel types
+import { DefaultReaction } from './emoji.ts';
+import { ISO8601, Snowflake } from './global.ts';
+import { Member } from './member.ts';
+import { Overwrite } from './overwrite.ts';
+import { User } from './user.ts';
+import { VoiceRegion } from './voice.ts';
 
 export enum ChannelType {
   TEXT = 0, // TextChannel
@@ -13,9 +12,9 @@ export enum ChannelType {
   GROUP = 3, // GroupChannel
   CATEGORY = 4, // CategoryChannel
   ANNOUNCEMENT = 5, // AnnouncementChannel
-  THREAD_ANNOUNCEMENT = 10, // ThreadAnnouncementChannel
-  PUBLIC_THREAD = 11, // PublicThreadChannel
-  PRIVATE_THREAD = 12, // PrivateThreadChannel
+  THREAD_ANNOUNCEMENT = 10, // ThreadChannel
+  PUBLIC_THREAD = 11, // ThreadChannel
+  PRIVATE_THREAD = 12, // ThreadChannel
   STAGE = 13, // StageChannel
   DIRECTORY = 14, // DirectoryChannel
   FORUM = 15, // ForumChannel (contains threads)
@@ -41,6 +40,18 @@ export enum ForumLayoutType {
   LIST_VIEW = 1,
   GALLERY_VIEW = 2,
 }
+
+export type Channel =
+  | TextChannel
+  | PrivateChannel
+  | VoiceChannel
+  | GroupChannel
+  | CategoryChannel
+  | AnnouncementChannel
+  | ThreadChannel
+  | StageChannel
+  | DirectoryChannel
+  | ForumChannel;
 
 export interface GlobalChannel {
   id: Snowflake;
@@ -72,7 +83,7 @@ export interface GlobalChannel {
   permissions?: string;
   flags?: ChannelFlag;
   total_message_sent?: number;
-  available_tags?: ForumChannelTag[];
+  available_tags?: ForumTag[]; // TODO: ForumChannelTag or ForumTag (?)
   applied_tags?: Snowflake[];
   default_reaction_emoji?: DefaultReaction | null;
   default_thread_rate_limit_per_user?: number;
@@ -111,6 +122,12 @@ interface GuildChannel extends BaseChannel {
   name: string;
 }
 
+interface NonGuildChannel extends BaseChannel {
+  last_message_id: Snowflake | null;
+  recipients: User[];
+  last_pin_timestamp?: ISO8601;
+}
+
 interface GuildTextChannel extends GuildChannel {
   nsfw: boolean;
   topic: string | null;
@@ -141,20 +158,14 @@ export interface VoiceChannel extends GuildVoiceChannel {
   type: ChannelType.VOICE;
 }
 
-export interface PrivateChannel extends BaseChannel {
+export interface PrivateChannel extends NonGuildChannel {
   type: ChannelType.PRIVATE;
-  last_message_id: Snowflake | null;
-  recipients: User[];
-  last_pin_timestamp?: ISO8601;
 }
 
-export interface GroupChannel extends BaseChannel {
+export interface GroupChannel extends NonGuildChannel {
   type: ChannelType.GROUP;
   icon: string | null;
-  recipients: User[];
-  last_message_id: Snowflake | null;
   owner_id: Snowflake;
-  last_pin_timestamp?: ISO8601;
 }
 
 export interface CategoryChannel extends GuildChannel {
@@ -165,19 +176,23 @@ export interface CategoryChannel extends GuildChannel {
 export interface ThreadChannel extends
   Omit<
     GuildTextChannel,
-    | "position"
-    | "permission_overwrites"
-    | "nsfw"
-    | "topic"
-    | "default_auto_archive_duration"
+    | 'position'
+    | 'permission_overwrites'
+    | 'nsfw'
+    | 'topic'
+    | 'default_auto_archive_duration'
   > {
-  type: ChannelType.PUBLIC_THREAD | ChannelType.PRIVATE_THREAD;
+  type:
+    | ChannelType.PUBLIC_THREAD
+    | ChannelType.PRIVATE_THREAD
+    | ChannelType.THREAD_ANNOUNCEMENT;
   owner_id: Snowflake;
   message_count: number;
   member_count: number;
   total_message_sent: number;
   thread_metadata: ThreadMetadata;
   applied_tags?: Snowflake[];
+  member?: ThreadMember; // only available in HTTP requests
 }
 
 export interface ThreadMetadata {
@@ -207,7 +222,7 @@ export interface DirectoryChannel extends BaseChannel {
 }
 
 export interface ForumChannel
-  extends Omit<GuildTextChannel, "last_message_id" | "last_pin_timestamp"> {
+  extends Omit<GuildTextChannel, 'last_pin_timestamp'> {
   type: ChannelType.FORUM;
   available_tags: ForumTag[];
   default_sort_order: ForumSortOrderType | null;

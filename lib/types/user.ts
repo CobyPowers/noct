@@ -15,7 +15,7 @@ export enum UserFlag {
   VERIFIED_BOT = 1 << 16,
   VERIFIED_DEVELOPER = 1 << 17,
   CERTIFIED_MODERATOR = 1 << 18,
-  BOT_INTERACTIONS_ONLY = 1 << 19,
+  HTTP_INTERACTIONS_ONLY = 1 << 19,
   ACTIVE_DEVELOPER = 1 << 22,
 }
 
@@ -26,18 +26,24 @@ export enum UserPremiumType {
   NITRO_BASIC = 3,
 }
 
-export const UserConnectionType = {
+export const ConnectionType = {
+  AMAZON_MUSIC: "amazon-music",
   BATTLENET: "battlenet",
+  BUNGIE: "bungie",
+  BLUESKY: "bluesky",
+  DOMAIN: "domain",
   EBAY: "ebay",
   EPIC_GAMES: "epicgames",
   FACEBOOK: "facebook",
   GITHUB: "github",
   INSTAGRAM: "instagram",
   LOL: "leagueoflegends",
+  MASTODON: "mastodon",
   PAYPAL: "paypal",
   PLAYSTATION: "playstation",
   REDDIT: "reddit",
   RIOT_GAMES: "riotgames",
+  ROBLOX: "roblox",
   SPOTIFY: "spotify",
   SKYPE: "skype",
   STEAM: "steam",
@@ -47,10 +53,10 @@ export const UserConnectionType = {
   XBOX: "xbox",
   YOUTUBE: "youtube",
 } as const;
-export type UserConnectionType =
-  typeof UserConnectionType[keyof typeof UserConnectionType];
+export type ConnectionType =
+  typeof ConnectionType[keyof typeof ConnectionType];
 
-export enum UserConnectionVisibility {
+export enum ConnectionVisibility {
   NONE = 0,
   EVERYONE = 1,
 }
@@ -60,7 +66,7 @@ export type PartialUser = Partial<User>;
 export interface User {
   id: Snowflake;
   username: string;
-  discriminator: string;
+  discriminator: string; // not really used anymore
   global_name: string | null;
   avatar: string | null;
   bot?: boolean;
@@ -71,21 +77,26 @@ export interface User {
   locale?: string;
   verified?: boolean;
   email?: string | null;
-  flags?: UserFlag;
+  flags?: UserFlag | number;
   premium_type?: UserPremiumType;
-  public_flags?: UserFlag;
-  avatar_decorations?: string | null;
+  public_flags?: UserFlag | number;
+  avatar_decoration_data?: AvatarDecorationData | null;
 }
 
-export interface UserConnection {
+export interface AvatarDecorationData {
+  asset: string;
+  sku_id: Snowflake;
+}
+
+export interface Connection {
   id: string;
   name: string;
-  type: UserConnectionType;
+  type: ConnectionType;
   revoked?: boolean;
   integrations?: Integration[];
   verified: boolean;
   friend_sync: boolean;
   show_activity: boolean;
   two_way_link: boolean;
-  visibility: UserConnectionVisibility;
+  visibility: ConnectionVisibility;
 }

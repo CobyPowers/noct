@@ -1,5 +1,17 @@
 {
-  "version": "2",
+  "version": "4",
+  "specifiers": {
+    "jsr:@std/async@^1.0.10": "1.0.10",
+    "jsr:@std/fmt@^1.0.5": "1.0.5"
+  },
+  "jsr": {
+    "@std/async@1.0.10": {
+      "integrity": "2ff1b1c7d33d1416159989b0f69e59ec7ee8cb58510df01e454def2108b3dbec"
+    },
+    "@std/fmt@1.0.5": {
+      "integrity": "0cfab43364bc36650d83c425cd6d99910fc20c4576631149f0f987eddede1a4d"
+    }
+  },
   "remote": {
     "https://deno.land/std@0.158.0/encoding/base64.ts": "c57868ca7fa2fbe919f57f88a623ad34e3d970d675bdc1ff3a9d02bba7409db2",
     "https://deno.land/std@0.195.0/async/deferred.ts": "42790112f36a75a57db4a96d33974a936deb7b04d25c6084a9fa8a49f135def8",
@@ -15,5 +27,11 @@
     "https://deno.land/x/nocular@v1.0.4/lib/types/nocular.ts": "cf2a194c8e333fb01daf05ab67397476cf86edc3f3f242a05c43e2a3d6e62a15",
     "https://deno.land/x/nocular@v1.0.4/lib/util/types.ts": "b1aca7bc6ee1cc8e2c78d11173b6ac2cb4c7c705390622e74ec429e12125c024",
     "https://deno.land/x/nocular@v1.0.4/mod.ts": "fa8a1415da1f16f7f71aa96bd4b1c97d7e2c9b632bfa1f0b92fd61fb2a87747a"
+  },
+  "workspace": {
+    "dependencies": [
+      "jsr:@std/async@^1.0.10",
+      "jsr:@std/fmt@^1.0.5"
+    ]
   }
 }

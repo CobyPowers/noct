@@ -7,6 +7,7 @@ export const EmbedType = {
   GIFV: "gifv",
   ARTICLE: "article",
   LINK: "link",
+  POLL_RESULT: "poll_result"
 } as const;
 export type EmbedType = typeof EmbedType[keyof typeof EmbedType];
 

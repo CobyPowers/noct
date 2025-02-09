@@ -4,11 +4,22 @@ import { PartialApplication } from "./application.ts";
 import { GatewayOpcode } from "./codes.ts";
 import { Snowflake } from "./global.ts";
 import { UnavailableGuild } from "./guild.ts";
+import { Presence } from "./presence.ts";
 import { User } from "./user.ts";
 
-export type GatewayEncoding = "json" | "etf";
+export const GatewayEncoding = {
+  JSON: "json",
+  ETF: "etf",
+} as const;
+export type GatewayEncoding =
+  typeof GatewayEncoding[keyof typeof GatewayEncoding];
 
-export type GatewayCompression = "zlib-stream" | "none";
+export const GatewayCompression = {
+  ZLIB: "zlib-stream",
+  NONE: "none",
+} as const;
+export type GatewayCompression =
+  typeof GatewayCompression[keyof typeof GatewayCompression];
 
 export enum GatewaySendEvent {
   IDENTIFY = "IDENTIFY",
@@ -130,6 +141,7 @@ export type GatewayPayload =
 
 export interface GatewayDispatchReceiveEventMap {
   READY: GatewayReadyReceiveEvent;
+  MESSAGE_CREATE: any; // TODO: give MESSAGE_CREATE event a type
 }
 
 export interface GatewayDispatchPayload<E, K extends keyof E> {
@@ -253,12 +265,7 @@ export interface GatewayUpdateVoiceStateSendEvent {
   self_deaf: boolean;
 }
 
-export interface GatewayUpdatePresenceSendEvent {
-  since: number | null;
-  activities: Activity[];
-  status: StatusType;
-  afk: boolean;
-}
+export type GatewayUpdatePresenceSendEvent = Presence;
 
 //#endregion Requests
 

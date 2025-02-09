@@ -57,6 +57,8 @@ export default class Bucket {
       if (!this.usable()) {
         this.#logger.debug(`Bucket '${this.id}' has exhausted rate limit, waiting ${this.resetMS}ms....`);
         setTimeout(() => res(), this.resetMS);
+
+        Deno.addSignalListener('SIGINT', () => Deno.exit()); // setTimeout() will yield the thread even if a SIGINT is received, so let's kill it
       } else res();
     })
   }
