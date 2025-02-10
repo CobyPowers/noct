@@ -1,3 +1,3 @@
 #!/bin/bash
 
-deno run --allow-net ./client.ts
+deno run --allow-net --allow-env --env-file ./client.ts
