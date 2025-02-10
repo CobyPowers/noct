@@ -53,6 +53,15 @@ export default class DiscordClient extends EventEmitter<DiscordClientEventMap> {
     this.emit("stop")
   }
 
+  async updateUser(data: {
+    username?: string,
+    avatar?: string,
+    banner?: string
+  }) {
+    const user = new User(this, await this.http.modifyCurrentUser(data));
+    return this.user = user;
+  }
+
   get latency() {
     return this.sharder.latency;
   }

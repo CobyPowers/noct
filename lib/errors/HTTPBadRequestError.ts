@@ -2,7 +2,7 @@ import { HTTPBadRequestError as IHTTPBadRequestError, HTTPBadRequestErrorDetails
 
 export default class HTTPBadRequestError extends Error {
   data: IHTTPBadRequestError;
-  name: string;
+  override name: string;
   code: number;
   shortMessage: string;
   
@@ -18,9 +18,10 @@ export default class HTTPBadRequestError extends Error {
   }
 
   #parseData(data: IHTTPBadRequestError): void {
-    let buffer = `[${data.code}] ${data.message}\n`;
+    let buffer = `[${data.code}] ${data.message}`;
 
-    buffer += this.#parseNest(data.errors);
+    if (data.errors)
+      buffer += '\n' + this.#parseNest(data.errors);
 
     this.message = buffer;
   }

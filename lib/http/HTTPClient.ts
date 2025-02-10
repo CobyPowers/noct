@@ -28,8 +28,8 @@ import { Channel, GroupChannel, PrivateChannel } from '../types/channel.ts';
 import { Snowflake } from '../types/global.ts';
 import { Message, MessageReference } from '../types/message.ts';
 import { Embed } from '../types/embed.ts';
-import { Attachment } from '../types/attachment.ts';
 import { PartialGuild } from '../types/guild.ts';
+import Attachment from '../structures/Attachment.ts';
 
 export default class HTTPClient {
   #client: DiscordClient;
@@ -69,7 +69,10 @@ export default class HTTPClient {
 
   async request<T = any>(
     route: Route,
-    options?: HTTPRequestOptions,
+    options?: {
+      ignoreGlobalLock?: boolean,
+      tries?: number
+    },
   ): Promise<T> {
     const bucketID = route.getBucketID();
     const bucket = this.#buckets.get(bucketID);
@@ -78,11 +81,15 @@ export default class HTTPClient {
       await this.#globalLock.waitUntil(false);
     }
 
-    bucket ? await bucket.lock.acquire() : await this.#lock.acquire();
-
-    bucket && await bucket.prepare();
+    if (bucket) {
+      await bucket.lock.acquire();
+      await bucket.prepare();
+    } else {
+      await this.#lock.acquire();
+    }
 
     let headers: Record<string, string> = {};
+   
     if (route.reason) {
       headers['X-Audit-Log-Reason'] = route.reason;
     }
@@ -92,7 +99,7 @@ export default class HTTPClient {
       headers,
       redirect: 'follow',
       keepalive: true,
-      validateStatus: () => true,
+      validateStatus: () => true
     });
 
     this.#logger.moduleInfo(
@@ -105,7 +112,6 @@ export default class HTTPClient {
 
     if (res.status === 400) {
       const data = res.data as IHTTPBadRequestError;
-
       throw new HTTPBadRequestError(data);
     }
 
@@ -172,7 +178,11 @@ export default class HTTPClient {
 
   #transformGatewayInfo<T extends GatewayConnectionInfo>(
     info: T,
-    options?: HTTPGetGatewayConnectionInfoOptions,
+    options?: {
+      v?: number,
+      encoding?: string,
+      compress?: string
+    },
   ): T {
     const params: Record<string, string | number | undefined> = {};
 
@@ -193,9 +203,9 @@ export default class HTTPClient {
 
   async getGatewayInfo(
     options?: {
-      v?: number;
-      encoding?: string;
-      compress?: string;
+      v?: number,
+      encoding?: string,
+      compress?: string
     },
   ): Promise<GatewayConnectionInfo> {
     const info = await this.request(
@@ -328,9 +338,8 @@ export default class HTTPClient {
     message_reference?: MessageReference,
     //components?: MessageComponent[],
     sticker_ids?: Snowflake[],
-    files?: any,
+    files?: Attachment[],
     payload_json?: string,
-    //attachments?: PartialAttachment,
     flags?: number,
     enforce_nonce?: boolean,
     //poll?: Poll
@@ -340,7 +349,8 @@ export default class HTTPClient {
         method: HTTPMethod.POST,
         path: '/channels/{channelID}/messages',
         resources: options,
-        data
+        files: data.files,
+        data,
       })
     )
   }

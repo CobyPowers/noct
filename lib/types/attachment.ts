@@ -4,9 +4,19 @@ export enum AttachmentFlag {
   IS_REMIX = 1 << 2,
 }
 
+export type PartialAttachment = Partial<Attachment>;
+
+export interface FileAttachment {
+  id: number;
+  filename?: string;
+  title?: string;
+  description?: string;
+}
+
 export interface Attachment {
   id: Snowflake;
   filename: string;
+  title?: string;
   description?: string;
   content_type?: string;
   size: number;

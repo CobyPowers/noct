@@ -2,7 +2,9 @@
   "version": "4",
   "specifiers": {
     "jsr:@std/async@^1.0.10": "1.0.10",
-    "jsr:@std/fmt@^1.0.5": "1.0.5"
+    "jsr:@std/fmt@^1.0.5": "1.0.5",
+    "jsr:@std/media-types@^1.1.0": "1.1.0",
+    "jsr:@std/path@^1.0.8": "1.0.8"
   },
   "jsr": {
     "@std/async@1.0.10": {
@@ -10,6 +12,12 @@
     },
     "@std/fmt@1.0.5": {
       "integrity": "0cfab43364bc36650d83c425cd6d99910fc20c4576631149f0f987eddede1a4d"
+    },
+    "@std/media-types@1.1.0": {
+      "integrity": "c9d093f0c05c3512932b330e3cc1fe1d627b301db33a4c2c2185c02471d6eaa4"
+    },
+    "@std/path@1.0.8": {
+      "integrity": "548fa456bb6a04d3c1a1e7477986b6cffbce95102d0bb447c67c4ee70e0364be"
     }
   },
   "remote": {
@@ -31,7 +39,9 @@
   "workspace": {
     "dependencies": [
       "jsr:@std/async@^1.0.10",
-      "jsr:@std/fmt@^1.0.5"
+      "jsr:@std/fmt@^1.0.5",
+      "jsr:@std/media-types@^1.1.0",
+      "jsr:@std/path@^1.0.8"
     ]
   }
 }
