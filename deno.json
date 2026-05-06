@@ -17,6 +17,6 @@
     "@std/media-types": "jsr:@std/media-types@^1.1.0",
     "@std/path": "jsr:@std/path@^1.0.8",
     "event": "https://deno.land/x/event@2.0.1/mod.ts",
-    "nocular": "../nocular/mod.ts"
+    "nocular": "https://deno.land/x/nocular@v1.0.4/mod.ts"
   }
 }
