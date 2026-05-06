@@ -1,7 +1,8 @@
 # Noct
 
-> This project is work in progress. Do _NOT_ use this library for production
-> applications until fully released.
+> [!WARNING]
+> This project is work in progress. Do _NOT_ use this library for projects
+> that you know and love.
 
 A fully compliant Discord API library written in TypeScript for the Deno
 JavaScript runtime.
